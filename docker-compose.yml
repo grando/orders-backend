@@ -1,0 +1,93 @@
+version: '3'
+services:
+  
+  webapp:
+    build:
+      context: ./docker/image
+    container_name: webapp
+    volumes:
+      - .:/var/www/html
+      - ~/.zshrc:/home/user/.zshrc
+      - ~/.oh-my-zsh:/home/user/.oh-my-zsh
+    ports:
+      - 80
+      - 443
+    environment:
+      # allowed values : dev || test || preprod || prod || build
+      - "RUNNING_MODE=dev"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webapp.rule=Host(`webapp.local`)"
+      - "traefik.http.routers.webapp.entrypoints=web"
+      - "traefik.http.services.webapp.loadbalancer.server.port=80"
+    networks:
+      - webapp_network
+
+  webapp_db:
+    image: mysql:5.7
+    container_name: webapp_db
+    ports:
+      - 53306:3306
+    volumes:
+      - "./docker/volumes/mariadb/data/.data:/var/lib/mysql"
+      - "./docker/volumes/mariadb/logs/:/var/log/mysql"
+      - "./docker/conf/mysql/my.cnf:/etc/mysql/conf.d/my.cnf" 
+    environment:
+      - "MYSQL_ROOT_PASSWORD=dbback"
+      - "MYSQL_USER=db-user"
+      - "MYSQL_PASSWORD=dbback"
+      - "MYSQL_DATABASE=webapp"
+    networks:
+      - webapp_network
+    user: "1000:1000"
+
+  webapp_adminer:
+    container_name: webapp_adminer
+    image: adminer:standalone
+    environment:
+      - ADMINER_DEFAULT_SERVER=webapp_db
+      - ADMINER_DESIGN=nette
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webapp_adminer.rule=Host(`adminer.webapp.local`)"
+      - "traefik.http.routers.webapp_adminer.entrypoints=web"
+      - "traefik.http.services.webapp_adminer.loadbalancer.server.port=8080"
+    networks:
+      - webapp_network
+    restart: on-failure
+        
+  webapp_traefic:
+    image: traefik:latest
+    container_name: webapp_traefic
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080" # The Web UI (enabled by --api.insecure=true)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webapp_traefic.rule=Host(`traefik.webapp.local`)"
+      - "traefik.http.routers.webapp_traefic.entrypoints=web"
+      - "traefik.http.services.webapp_traefic.loadbalancer.server.port=8080"
+    networks:
+      - webapp_network
+      
+  webapp_whoami:
+    image: traefik/whoami
+    container_name: webapp_whoami
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webapp_whoami.rule=Host(`whoami.webapp.local`)"
+      - "traefik.http.routers.webapp_whoami.entrypoints=web"
+    networks:
+      - webapp_network
+
+networks:
+  webapp_network:
+    driver: bridge
