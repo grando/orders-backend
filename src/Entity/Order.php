@@ -25,9 +25,8 @@ class Order
     #[ORM\Column]
     private ?\DateTimeImmutable $date = null;
 
-    #[ORM\ManyToMany(targetEntity: Product::class, inversedBy: 'orders')]
-    #[ORM\JoinTable(name: 'order_product')]
-    private Collection $products;
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: OrderProduct::class, cascade: ['persist', 'remove'])]
+    private Collection $orderProducts;
 
     public function getId(): ?int
     {
@@ -78,26 +77,29 @@ class Order
     }
 
     /**
-     * @return Collection<int, Product>
+     * @return Collection<int, OrderProduct>
      */
-    public function getProducts(): Collection
+    public function getOrderProducts(): Collection
     {
-        return $this->products;
+        return $this->orderProducts;
     }
 
-    public function addProduct(Product $product): self
+    public function addOrderProduct(OrderProduct $orderProduct): self
     {
-        if (!$this->products->contains($product)) {
-            $this->products->add($product);
-            $product->addOrder($this);
+        if (!$this->orderProducts->contains($orderProduct)) {
+            $this->orderProducts->add($orderProduct);
+            $orderProduct->setOrder($this);
         }
         return $this;
     }
 
-    public function removeProduct(Product $product): self
+    public function removeOrderProduct(OrderProduct $orderProduct): self
     {
-        if ($this->products->removeElement($product)) {
-            $product->removeOrder($this);
+        if ($this->orderProducts->removeElement($orderProduct)) {
+            // set the owning side to null (unless already changed)
+            if ($orderProduct->getOrder() === $this) {
+                $orderProduct->setOrder(null);
+            }
         }
         return $this;
     }

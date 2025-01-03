@@ -21,8 +21,11 @@ class Product
     #[ORM\Column(type: Types::DECIMAL, precision: 2, scale: 2)]
     private ?string $price = null;
 
-    #[ORM\ManyToMany(targetEntity: Order::class, mappedBy: 'products')]
-    private Collection $orders;
+    #[ORM\OneToMany(mappedBy: 'product', targetEntity: OrderProduct::class, cascade: ['persist', 'remove'])]
+    private Collection $orderProducts;
+
+    #[ORM\Column]
+    private ?int $stock = null;
 
     public function getId(): ?int
     {
@@ -61,24 +64,30 @@ class Product
     }
 
     /**
-     * @return Collection<int, Order>
+     * @return Collection<int, OrderProduct>
      */
-    public function getOrders(): Collection
+    public function getOrderProducts(): Collection
     {
-        return $this->orders;
+        return $this->orderProducts;
     }
 
-    public function addOrder(Order $order): self
+    public function addOrderProduct(OrderProduct $orderProduct): self
     {
-        if (!$this->orders->contains($order)) {
-            $this->orders->add($order);
+        if (!$this->orderProducts->contains($orderProduct)) {
+            $this->orderProducts->add($orderProduct);
+            $orderProduct->setProduct($this);
         }
         return $this;
     }
 
-    public function removeOrder(Order $order): self
+    public function removeOrderProduct(OrderProduct $orderProduct): self
     {
-        $this->orders->removeElement($order);
+        if ($this->orderProducts->removeElement($orderProduct)) {
+            // set the owning side to null (unless already changed)
+            if ($orderProduct->getProduct() === $this) {
+                $orderProduct->setProduct(null);
+            }
+        }
         return $this;
     }
 
