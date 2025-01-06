@@ -18,14 +18,14 @@ class Product
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 2, scale: 2)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $price = null;
 
-    #[ORM\OneToMany(mappedBy: 'product', targetEntity: OrderProduct::class, cascade: ['persist', 'remove'])]
-    private Collection $orderProducts;
+    #[ORM\OneToMany(mappedBy: 'product', targetEntity: CustomerOrderProduct::class, cascade: ['persist', 'remove'])]
+    private Collection $customerOrderProducts;
 
     #[ORM\Column]
-    private ?int $stock = null;
+    private ?int $stockLevel = null;
 
     public function getId(): ?int
     {
@@ -63,29 +63,41 @@ class Product
         return $this;
     }
 
-    /**
-     * @return Collection<int, OrderProduct>
-     */
-    public function getOrderProducts(): Collection
+    public function getStockLevel(): ?int
     {
-        return $this->orderProducts;
+        return $this->stockLevel;
     }
 
-    public function addOrderProduct(OrderProduct $orderProduct): self
+    public function setStockLevel(int $stockLevel): static
     {
-        if (!$this->orderProducts->contains($orderProduct)) {
-            $this->orderProducts->add($orderProduct);
-            $orderProduct->setProduct($this);
+        $this->stockLevel = $stockLevel;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CustomerOrderProduct>
+     */
+    public function getCustomerOrderProducts(): Collection
+    {
+        return $this->customerOrderProducts;
+    }
+
+    public function addOrderProduct(CustomerOrderProduct $customerOrderProduct): self
+    {
+        if (!$this->customerOrderProducts->contains($customerOrderProduct)) {
+            $this->customerOrderProducts->add($customerOrderProduct);
+            $customerOrderProduct->setProduct($this);
         }
         return $this;
     }
 
-    public function removeOrderProduct(OrderProduct $orderProduct): self
+    public function removeCustomerOrderProduct(CustomerOrderProduct $customerOrderProduct): self
     {
-        if ($this->orderProducts->removeElement($orderProduct)) {
+        if ($this->customerOrderProducts->removeElement($customerOrderProduct)) {
             // set the owning side to null (unless already changed)
-            if ($orderProduct->getProduct() === $this) {
-                $orderProduct->setProduct(null);
+            if ($customerOrderProduct->getProduct() === $this) {
+                $customerOrderProduct->setProduct(null);
             }
         }
         return $this;

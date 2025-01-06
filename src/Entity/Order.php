@@ -2,31 +2,35 @@
 
 namespace App\Entity;
 
-use App\Repository\OrderRepository;
+use App\Repository\CustomerOrderRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
-#[ORM\Entity(repositoryClass: OrderRepository::class)]
-#[ORM\Table(name: '`order`')]
-class Order
+#[ORM\Entity(repositoryClass: CustomerOrderRepository::class)]
+class CustomerOrder
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['list'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['list'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['list'])]
     private ?string $description = null;
 
     #[ORM\Column]
+    #[Groups(['list'])]
     private ?\DateTimeImmutable $date = null;
 
-    #[ORM\OneToMany(mappedBy: 'order', targetEntity: OrderProduct::class, cascade: ['persist', 'remove'])]
-    private Collection $orderProducts;
+    #[ORM\OneToMany(mappedBy: 'customerOrder', targetEntity: CustomerOrderProduct::class, cascade: ['persist', 'remove'])]
+    private Collection $customerOrderProducts;
 
     public function getId(): ?int
     {
@@ -77,28 +81,28 @@ class Order
     }
 
     /**
-     * @return Collection<int, OrderProduct>
+     * @return Collection<int, CustomerOrderProduct>
      */
-    public function getOrderProducts(): Collection
+    public function getCustomerOrderProducts(): Collection
     {
-        return $this->orderProducts;
+        return $this->customerOrderProducts;
     }
 
-    public function addOrderProduct(OrderProduct $orderProduct): self
+    public function addCustomerOrderProduct(CustomerOrderProduct $customerOrderProduct): self
     {
-        if (!$this->orderProducts->contains($orderProduct)) {
-            $this->orderProducts->add($orderProduct);
-            $orderProduct->setOrder($this);
+        if (!$this->customerOrderProducts->contains($customerOrderProduct)) {
+            $this->customerOrderProducts->add($customerOrderProduct);
+            $customerOrderProduct->setCustomerOrder($this);
         }
         return $this;
     }
 
-    public function removeOrderProduct(OrderProduct $orderProduct): self
+    public function removeCustomerOrderProduct(CustomerOrderProduct $customerOrderProduct): self
     {
-        if ($this->orderProducts->removeElement($orderProduct)) {
+        if ($this->customerOrderProducts->removeElement($customerOrderProduct)) {
             // set the owning side to null (unless already changed)
-            if ($orderProduct->getOrder() === $this) {
-                $orderProduct->setOrder(null);
+            if ($customerOrderProduct->getCustomerOrder() === $this) {
+                $customerOrderProduct->setCustomerOrder(null);
             }
         }
         return $this;

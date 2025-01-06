@@ -5,6 +5,13 @@ framework:
     http_method_override: false
     handle_all_throwables: true
 
+    serializer:
+        enabled: true
+        enable_attributes: true
+        default_context:
+            datetime_format: 'Y-m-d\TH:i:sP' # ISO 8601 format        
+    
+       
     # Enables session support. Note that the session will ONLY be started if you read or write from it.
     # Remove or comment this section to explicitly disable session support.
     session:

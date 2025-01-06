@@ -2,33 +2,44 @@
 
 namespace App\Entity;
 
-use App\Repository\OrderProductRepository;
+use App\Repository\CustomerOrderProductRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: OrderProductRepository::class)]
-class OrderProduct
+#[ORM\Entity(repositoryClass: CustomerOrderProductRepository::class)]
+#[ORM\Table(name: 'customer_order_product', indexes: [
+    new ORM\Index(name: 'customer_order_product_idx', columns: ['customer_order_id', 'product_id']),
+])]
+class CustomerOrderProduct
 {
     #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: Order::class, inversedBy: 'orderProducts')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Order $order = null;
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
 
-    #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'orderProducts')]
+    #[ORM\ManyToOne(targetEntity: CustomerOrder::class, inversedBy: 'customerOrderProducts')]
+    #[ORM\JoinColumn(name: 'customer_order_id', nullable: false)]
+    private ?CustomerOrder $customerOrder = null;
+
+    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'customerOrderProducts')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $product = null;
 
     #[ORM\Column]
     private ?int $quantity = null;
 
-    public function getOrder(): ?Order
+    public function getId(): ?int
     {
-        return $this->order;
+        return $this->id;
     }
 
-    public function setOrder(?Order $order): self
+    public function getCustomerOrder(): ?CustomerOrder
     {
-        $this->order = $order;
+        return $this->customerOrder;
+    }
+
+    public function setCustomerOrder(?CustomerOrder $customerOrder): self
+    {
+        $this->customerOrder = $customerOrder;
 
         return $this;
     }
