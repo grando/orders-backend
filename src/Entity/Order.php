@@ -2,14 +2,14 @@
 
 namespace App\Entity;
 
-use App\Repository\CustomerOrderRepository;
+use App\Repository\OrderRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
-#[ORM\Entity(repositoryClass: CustomerOrderRepository::class)]
-class CustomerOrder
+#[ORM\Entity(repositoryClass: OrderRepository::class)]
+class Order
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -29,8 +29,8 @@ class CustomerOrder
     #[Groups(['list'])]
     private ?\DateTimeImmutable $date = null;
 
-    #[ORM\OneToMany(mappedBy: 'customerOrder', targetEntity: CustomerOrderProduct::class, cascade: ['persist', 'remove'])]
-    private Collection $customerOrderProducts;
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: OrderProduct::class, cascade: ['persist', 'remove'])]
+    private Collection $orderProducts;
 
     public function getId(): ?int
     {
@@ -81,28 +81,28 @@ class CustomerOrder
     }
 
     /**
-     * @return Collection<int, CustomerOrderProduct>
+     * @return Collection<int, OrderProduct>
      */
-    public function getCustomerOrderProducts(): Collection
+    public function getOrderProducts(): Collection
     {
-        return $this->customerOrderProducts;
+        return $this->orderProducts;
     }
 
-    public function addCustomerOrderProduct(CustomerOrderProduct $customerOrderProduct): self
+    public function addOrderProduct(OrderProduct $orderProduct): self
     {
-        if (!$this->customerOrderProducts->contains($customerOrderProduct)) {
-            $this->customerOrderProducts->add($customerOrderProduct);
-            $customerOrderProduct->setCustomerOrder($this);
+        if (!$this->orderProducts->contains($orderProduct)) {
+            $this->orderProducts->add($orderProduct);
+            $orderProduct->setOrder($this);
         }
         return $this;
     }
 
-    public function removeCustomerOrderProduct(CustomerOrderProduct $customerOrderProduct): self
+    public function removeOrderProduct(OrderProduct $orderProduct): self
     {
-        if ($this->customerOrderProducts->removeElement($customerOrderProduct)) {
+        if ($this->orderProducts->removeElement($orderProduct)) {
             // set the owning side to null (unless already changed)
-            if ($customerOrderProduct->getCustomerOrder() === $this) {
-                $customerOrderProduct->setCustomerOrder(null);
+            if ($orderProduct->getOrder() === $this) {
+                $orderProduct->setOrder(null);
             }
         }
         return $this;

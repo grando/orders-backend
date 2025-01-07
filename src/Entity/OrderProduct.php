@@ -2,25 +2,25 @@
 
 namespace App\Entity;
 
-use App\Repository\CustomerOrderProductRepository;
+use App\Repository\OrderProductRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: CustomerOrderProductRepository::class)]
+#[ORM\Entity(repositoryClass: OrderProductRepository::class)]
 #[ORM\Table(name: 'customer_order_product', indexes: [
     new ORM\Index(name: 'customer_order_product_idx', columns: ['customer_order_id', 'product_id']),
 ])]
-class CustomerOrderProduct
+class OrderProduct
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: CustomerOrder::class, inversedBy: 'customerOrderProducts')]
+    #[ORM\ManyToOne(targetEntity: Order::class, inversedBy: 'orderProducts')]
     #[ORM\JoinColumn(name: 'customer_order_id', nullable: false)]
-    private ?CustomerOrder $customerOrder = null;
+    private ?Order $order = null;
 
-    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'customerOrderProducts')]
+    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'orderProducts')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $product = null;
 
@@ -32,14 +32,14 @@ class CustomerOrderProduct
         return $this->id;
     }
 
-    public function getCustomerOrder(): ?CustomerOrder
+    public function getOrder(): ?Order
     {
-        return $this->customerOrder;
+        return $this->order;
     }
 
-    public function setCustomerOrder(?CustomerOrder $customerOrder): self
+    public function setOrder(?Order $order): self
     {
-        $this->customerOrder = $customerOrder;
+        $this->order = $rder;
 
         return $this;
     }

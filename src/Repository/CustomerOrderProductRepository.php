@@ -2,8 +2,8 @@
 
 namespace App\Repository;
 
-use App\Entity\CustomerOrder;
-use App\Entity\CustomerOrderProduct;
+use App\Entity\Order;
+use App\Entity\OrderProduct;
 use App\Entity\Product;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -11,30 +11,30 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<CustomerOrder>
+ * @extends ServiceEntityRepository<Order>
  */
-class CustomerOrderProductRepository extends ServiceEntityRepository
+class OrderProductRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry, EntityManagerInterface $entityManager)
     {
-        parent::__construct($registry, CustomerOrder::class);
+        parent::__construct($registry, Order::class);
     }
 
-    public function getCustomerOrderProductCustomer(CustomerOrder $customerOrder, Product $product): ?CustomerOrderProduct
+    public function getOrderProductCustomer(Order $order, Product $product): ?OrderProduct
     {
         $query = $this->createQueryBuilder('op')
-            ->where('op.customerOrder = :customerOrder')
+            ->where('op.order = :order')
             ->andWhere('op.product = :product')
-            ->setParameter('customerOrder', $customerOrder)
+            ->setParameter('order', $order)
             ->setParameter('product', $product)
             ->getQuery();
 
         return $query->getOneOrNullResult();
     }
 
-    public function save(CustomerOrderProduct $customerOrderProduct): void
+    public function save(OrderProduct $orderProduct): void
     {
-        $this->entityManager->persist($customerOrderProduct);
+        $this->entityManager->persist($orderProduct);
         $this->entityManager->flush();
     }
 }

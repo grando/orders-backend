@@ -2,24 +2,24 @@
 
 namespace App\Repository;
 
-use App\Entity\CustomerOrder;
+use App\Entity\Order;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<CustomerOrder>
+ * @extends ServiceEntityRepository<Order>
  */
-class CustomerOrderRepository extends ServiceEntityRepository
+class OrderRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry, EntityManagerInterface $entityManager)
     {
-        parent::__construct($registry, CustomerOrder::class);
+        parent::__construct($registry, Order::class);
     }
 
-    public function save(CustomerOrder $customerOrder): void
+    public function save(Order $order): void
     {
-        $this->entityManager->persist($customerOrder);
+        $this->entityManager->persist($order);
         $this->entityManager->flush();
     }
 

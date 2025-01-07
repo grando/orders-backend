@@ -2,11 +2,11 @@
 
 namespace App\Service;
 
-use App\Entity\CustomerOrder;
-use App\Entity\CustomerOrderProduct;
+use App\Entity\Order;
+use App\Entity\OrderProduct;
 use App\Entity\Product;
-use App\Repository\CustomerOrderProductRepository;
-use App\Repository\CustomerOrderRepository;
+use App\Repository\OrderProductRepository;
+use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -15,15 +15,15 @@ class StockManagementService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ProductRepository $productRepository,
-        private CustomerOrderRepository $customerOrderRepository,
-        private CustomerOrderProductRepository $customerOrderProductRepository
+        private OrderRepository $orderRepository,
+        private OrderProductRepository $orderProductRepository
     )
     {
     }
 
-    public function createOrder(string $name, ?string $description): CustomerOrder
+    public function createOrder(string $name, ?string $description): Order
     {
-        $order = new CustomerOrder();
+        $order = new Order();
         $order->setName($name)
             ->setDescription($description)
             ->setDate(new \DateTimeImmutable());
@@ -33,10 +33,8 @@ class StockManagementService
 
         return $order;
     }
-123
-    }
 
-    public function deleteOrder(CustomerOrder $order): bool
+    public function deleteOrder(Order $order): bool
     {
         try{
             $this->entityManager->remove($order);

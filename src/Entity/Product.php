@@ -21,8 +21,8 @@ class Product
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $price = null;
 
-    #[ORM\OneToMany(mappedBy: 'product', targetEntity: CustomerOrderProduct::class, cascade: ['persist', 'remove'])]
-    private Collection $customerOrderProducts;
+    #[ORM\OneToMany(mappedBy: 'product', targetEntity: OrderProduct::class, cascade: ['persist', 'remove'])]
+    private Collection $orderProducts;
 
     #[ORM\Column]
     private ?int $stockLevel = null;
@@ -76,28 +76,28 @@ class Product
     }
 
     /**
-     * @return Collection<int, CustomerOrderProduct>
+     * @return Collection<int, OrderProduct>
      */
-    public function getCustomerOrderProducts(): Collection
+    public function getOrderProducts(): Collection
     {
-        return $this->customerOrderProducts;
+        return $this->orderProducts;
     }
 
-    public function addOrderProduct(CustomerOrderProduct $customerOrderProduct): self
+    public function addOrderProduct(OrderProduct $orderProduct): self
     {
-        if (!$this->customerOrderProducts->contains($customerOrderProduct)) {
-            $this->customerOrderProducts->add($customerOrderProduct);
-            $customerOrderProduct->setProduct($this);
+        if (!$this->orderProducts->contains($orderProduct)) {
+            $this->orderProducts->add($orderProduct);
+            $orderProduct->setProduct($this);
         }
         return $this;
     }
 
-    public function removeCustomerOrderProduct(CustomerOrderProduct $customerOrderProduct): self
+    public function removeOrderProduct(OrderProduct $orderProduct): self
     {
-        if ($this->customerOrderProducts->removeElement($customerOrderProduct)) {
+        if ($this->orderProducts->removeElement($orderProduct)) {
             // set the owning side to null (unless already changed)
-            if ($customerOrderProduct->getProduct() === $this) {
-                $customerOrderProduct->setProduct(null);
+            if ($orderProduct->getProduct() === $this) {
+                $orderProduct->setProduct(null);
             }
         }
         return $this;
