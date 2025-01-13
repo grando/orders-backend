@@ -15,15 +15,15 @@ class Order
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['list'])]
+    #[Groups(['list', 'details'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['list'])]
+    #[Groups(['list', 'details'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['list'])]
+    #[Groups(['list', 'details'])]
     private ?string $description = null;
 
     #[ORM\Column]
@@ -31,6 +31,7 @@ class Order
     private ?\DateTimeImmutable $date = null;
 
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: OrderProduct::class, cascade: ['persist', 'remove'])]
+    #[Groups(['details'])]
     private Collection $orderProducts;
 
     public function getId(): ?int

@@ -38,45 +38,16 @@ class OrdersController extends AbstractController
     {
     }
 
-    #[Route('/test', name: 'test', methods: ['GET'])]
-    public function test(): JsonResponse
-    {
-        try{
-        $order = $this->orderRepository->find(1);
-        $product = $this->productRepository->find(3);
-        
-        $list = $this->orderProductRepository->find(1);
-
-        dd($list);
-        } catch (\Throwable $e) {
-            dd($e);
-            return $this->errorResponse('Orders retrieval failed', [$e->getMessage()]);
-        }
-        /**
-
-        $order = $this->orderRepository->find(1);
-        $product = $this->productRepository->find(1);
-        $this->productRepository->checkAndUpdateStockLevel($product, 1);
-        $orderProduct = $this->orderProductRepository->getOrderProduct($order, $product);
-        dd($orderProduct);
-        $orderProduct = new OrderProduct();
-        $orderProduct->setOrder($order)
-            ->setProduct($product)
-            ->setQuantity(1);
-        $order->addOrderProduct($orderProduct);
-        $this->entityManager->persist($order);
-        $this->entityManager->flush();
-        **/
-
-        dd('test');
-
-    }
-
     #[Route('', name: 'list', methods: ['GET'])]
-    public function index(NormalizerInterface $normalizer): JsonResponse
+    public function index(Request $request, NormalizerInterface $normalizer): JsonResponse
     {
         try{            
-            $orders = $this->orderRepository->findAll();
+            $name = $request->query->get('name');
+            $description = $request->query->get('description');
+            $page = $request->query->getInt('page', 1);
+            $limit = $request->query->getInt('limit', 10);
+
+            $orders = $this->orderRepository->findByCriteria($name, $description, $page, $limit);
             $data = $normalizer->normalize($orders, null, ['groups' => ['list']]);
 
             return $this->successResponse($data, 'Orders retrieved successfully');
@@ -108,15 +79,15 @@ class OrdersController extends AbstractController
         }
     }
 
-    /*
     #[Route('/{id}', name: 'update', methods: ['PUT'])]
     public function update(Request $request, int $id): JsonResponse
     {
         try {
             $order = $this->findOrder($id);
 
-            $data = json_decode($request->getContent(), true);            
+            $data = json_decode($request->getContent(), true);
      
+            // Validate the data
             $errors = $this->validateUpdateOrderData($data);
             if (empty($data) || $errors->count() > 0) {                
                 $errorsList = $this->errorsListToArray($errors);
@@ -125,7 +96,7 @@ class OrdersController extends AbstractController
 
             $description = $data['description'] ?? null;
             $name = $data['name'] ?? null;
-            $order = $this->stockManagementService->updateOrder($order, $name, $description);
+            $order = $this->orderRepository->updateOrder($order, $name, $description);
 
             return $this->successResponse($order, 'Order updated successfully');
 
@@ -133,15 +104,17 @@ class OrdersController extends AbstractController
             return $this->errorResponse('Order update exception', [$e->getMessage()]);
         }
     }
-    */
 
     #[Route('/{id}', name: 'detail', methods: ['GET'])]
     public function orderDetails(int $id): JsonResponse
     {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/OrdersController.php',
-        ]);
+        try {
+            $order = $this->findOrder($id);
+            $data = $this->serializer->serialize($order, 'json', ['groups' => ['details']]);
+            return new JsonResponse($data, Response::HTTP_OK, [], true);
+        } catch (\Throwable $e) {
+            return $this->errorResponse('Order details retrieval failed', [$e->getMessage()]);
+        }
     }
 
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
@@ -213,7 +186,7 @@ class OrdersController extends AbstractController
     {
         $apiResponse = ApiResponse::errorResponse($message, $errors);
         $json = $this->serializer->serialize($apiResponse, 'json', $context);
-        return new JsonResponse($json, $httpCode, [], true);
+        return new JsonResponse(json_decode($json), $httpCode);
     }
 
     private function successResponse(
@@ -224,7 +197,7 @@ class OrdersController extends AbstractController
     {
         $apiResponse = ApiResponse::successResponse($data, $message);
         $json = $this->serializer->serialize($apiResponse, 'json', $context);
-        return new JsonResponse($json, $httpCode, [], true); 
+        return new JsonResponse(json_decode($json), $httpCode); 
     }
 
     private function findOrder(int $id): Order
@@ -250,7 +223,8 @@ class OrdersController extends AbstractController
         $errors = $this->validator->validate($data, new Assert\Collection([
             'name' => [
                 new Assert\NotBlank(),
-                new Assert\Type('string')
+                new Assert\Type('string'),
+                new Assert\Length(['min' => 1])
             ],
             'description' => [
                 new Assert\Type('string')
@@ -264,10 +238,15 @@ class OrdersController extends AbstractController
     {
         $errors = $this->validator->validate($data, new Assert\Collection([
             'name' => [
-                new Assert\Type('string')
+                new Assert\Optional([
+                    new Assert\Type('string'),
+                    new Assert\Length(['min' => 1])
+                ])
             ],
             'description' => [
-                new Assert\Type('string')
+                new Assert\Optional([
+                    new Assert\Type('string')
+                ])
             ]
         ]));
 
@@ -291,9 +270,9 @@ class OrdersController extends AbstractController
     {
         $errorMessages = [];
         foreach ($errors as $fieldname => $error) {
-            $errorMessages[] = $error->getMessage();
+            $errorMessages[] = sprintf('%s: %s', $error->getPropertyPath(), $error->getMessage());
+
         }
         return $errorMessages;
     }
-
 }
