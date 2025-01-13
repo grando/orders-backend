@@ -9,6 +9,7 @@ use App\Repository\OrderProductRepository;
 use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class StockManagementService
 {
@@ -56,8 +57,8 @@ class StockManagementService
             $this->productRepository->checkAndUpdateStockLevel($product, $quantity);
 
             // Create or update the OrderProduct entity
-            $orderProduct = $this->orderProductRepository->findOneBy(['customer_order' => $order, 'product' => $product]);
-die('here');
+            $orderProduct = $this->orderProductRepository->findOneBy(['order' => $order, 'product' => $product]);
+
             if ($orderProduct) {
                 $orderProduct->setQuantity($orderProduct->getQuantity() + $quantity);
             } else {
@@ -70,6 +71,37 @@ die('here');
 
             $this->orderProductRepository->save($orderProduct);
             $this->orderRepository->save($order);
+
+            $this->entityManager->commit();
+        } catch (\Throwable $e) {
+            $this->entityManager->rollback();
+            throw $e;
+        }
+
+        return $order;
+    }
+
+    public function removeProductFromOrder(Order $order, Product $product, int $quantity): Order
+    {
+        $this->entityManager->beginTransaction();
+
+        try {
+            $orderProduct = $this->orderProductRepository->findOneBy(['order' => $order, 'product' => $product]);
+            if (!$orderProduct) {
+                throw new BadRequestHttpException('Product not found in order');
+            }
+
+            // Increase stock level
+            $this->productRepository->increaseStockLevel($product, $quantity);
+
+            // update order product quantity
+            if(0 < $orderProduct->getQuantity() - $quantity) {
+                $newQuantity = $orderProduct->getQuantity() - $quantity;
+                $orderProduct->setQuantity($newQuantity);
+                $this->orderProductRepository->save($orderProduct);
+            } else {
+                $this->orderProductRepository->delete($orderProduct);                
+            }
 
             $this->entityManager->commit();
         } catch (\Throwable $e) {

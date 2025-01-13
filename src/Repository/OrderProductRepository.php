@@ -15,9 +15,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class OrderProductRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry, EntityManagerInterface $entityManager)
+
+    public function __construct(ManagerRegistry $registry, private EntityManagerInterface $entityManager)
     {
-        parent::__construct($registry, Order::class);
+        parent::__construct($registry, OrderProduct::class);
     }
 
     public function getOrderProduct(Order $order, Product $product): ?OrderProduct
@@ -35,6 +36,12 @@ class OrderProductRepository extends ServiceEntityRepository
     public function save(OrderProduct $orderProduct): void
     {
         $this->entityManager->persist($orderProduct);
+        $this->entityManager->flush();
+    }
+
+    public function delete(OrderProduct $orderProduct): void
+    {
+        $this->entityManager->remove($orderProduct);
         $this->entityManager->flush();
     }
 }

@@ -38,6 +38,22 @@ class ProductRepository extends ServiceEntityRepository
         }
     }
 
+    public function increaseStockLevel(Product $product, int $quantity): void
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->update()
+            ->set('p.stockLevel', 'p.stockLevel + :quantity')
+            ->where('p.id = :productId')
+            ->setParameter('quantity', $quantity)
+            ->setParameter('productId', $product->getId());
+
+        $result = $qb->getQuery()->execute();
+
+        if ($result === 0) {
+            throw new BadRequestHttpException('Impossible to increase stock level');
+        }
+    }
+
     public function save(Product $product): void
     {
         $this->entityManager->persist($product);        

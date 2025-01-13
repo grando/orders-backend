@@ -3,8 +3,8 @@
 ##
 INSERT INTO `product` (`id`, `name`, `price`, `stock_level`) VALUES
 (1,	'Penna blue',	0.60,	10),
-(2,	'Penna rossa',	0.80,	3),
-(3,	'Blocco Note',	2.99,	4);
+(2,	'Penna rossa',	0.80,	5),
+(3,	'Blocco Note',	2.99,	1);
 ##
 
 curl -X 'GET' \
@@ -26,3 +26,10 @@ curl -X 'PUT' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{ "quantity": 1 }'
+
+
+curl -X 'DELETE' \
+  'http://webapp.local/orders/1/products/3' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{ "quantity": 1 }'  

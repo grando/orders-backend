@@ -12,7 +12,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class OrderRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry, EntityManagerInterface $entityManager)
+    public function __construct(ManagerRegistry $registry, private EntityManagerInterface $entityManager)
     {
         parent::__construct($registry, Order::class);
     }

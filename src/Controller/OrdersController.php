@@ -175,30 +175,36 @@ class OrdersController extends AbstractController
 
             $product = $this->findProduct($productId);
             $order = $this->stockManagementService->addProductToOrder($order, $product, $data['quantity']);
-            dd($order);
 
             return $this->successResponse($order, 'Product added to order successfully');
         } catch (\Throwable $e) {
             return $this->errorResponse('Exception while adding product to order', [$e->getMessage()]);
         }
     }
-/*
+
     #[Route('/{orderId}/products/{productId}', name: 'remove_product', methods: ['DELETE'])]
-    public function removeProduct(int $orderId, int $productId): JsonResponse
+    public function removeProduct(int $orderId, int $productId, Request $request, ValidatorInterface $validator): JsonResponse
     {
         try {
             $order = $this->findOrder($orderId);
+            $data = json_decode($request->getContent(), true);
+
+            $errors = $this->validateProductQuantity($data, $validator);            
+            if ($errors->count() > 0) {            
+                return $this->errorResponse('Validation error for product quantity', $this->errorsListToArray($errors));
+            }
+
             $product = $this->findProduct($productId);
-            $this->removeProductFromOrder($order, $product);
+            $this->stockManagementService->removeProductFromOrder($order, $product, $data['quantity']);
 
             $apiResponse = ApiResponse::successResponse($order, 'Product removed from order successfully');
             $json = $this->serializer->serialize($apiResponse, 'json', ['groups' => ['default', 'success']]);
             return new JsonResponse($json, Response::HTTP_OK, [], true);
         } catch (\Throwable $e) {
-            return $this->handleException('Exception while removing product from order', $e);
+            return $this->errorResponse('Exception while removing product from order', [$e->getMessage()]);
         }
     }
-*/
+
     private function errorResponse(
         string $message, 
         ?array $errors = null,
