@@ -52,15 +52,12 @@ class StockManagementService
 
         try {
 
-            
-            
-            
             // Check and update stock level
             $this->productRepository->checkAndUpdateStockLevel($product, $quantity);
 
             // Create or update the OrderProduct entity
-            $orderProduct = $this->orderProductRepository->findOneBy(['order' => $order, 'product' => $product]);
-die('here);
+            $orderProduct = $this->orderProductRepository->findOneBy(['customer_order' => $order, 'product' => $product]);
+die('here');
             if ($orderProduct) {
                 $orderProduct->setQuantity($orderProduct->getQuantity() + $quantity);
             } else {

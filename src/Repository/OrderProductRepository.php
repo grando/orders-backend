@@ -7,11 +7,11 @@ use App\Entity\OrderProduct;
 use App\Entity\Product;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
-
 use Doctrine\Persistence\ManagerRegistry;
 
+
 /**
- * @extends ServiceEntityRepository<Order>
+ * @extends ServiceEntityRepository<OrderProduct>
  */
 class OrderProductRepository extends ServiceEntityRepository
 {
@@ -20,7 +20,7 @@ class OrderProductRepository extends ServiceEntityRepository
         parent::__construct($registry, Order::class);
     }
 
-    public function getOrderProductCustomer(Order $order, Product $product): ?OrderProduct
+    public function getOrderProduct(Order $order, Product $product): ?OrderProduct
     {
         $query = $this->createQueryBuilder('op')
             ->where('op.order = :order')

@@ -6,8 +6,8 @@ use App\Repository\OrderProductRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: OrderProductRepository::class)]
-#[ORM\Table(name: 'customer_order_product', indexes: [
-    new ORM\Index(name: 'customer_order_product_idx', columns: ['customer_order_id', 'product_id']),
+#[ORM\Table(name: 'order_product', indexes: [
+    new ORM\Index(name: 'order_product_idx', columns: ['customer_order_id', 'product_id']),
 ])]
 class OrderProduct
 {
@@ -39,7 +39,7 @@ class OrderProduct
 
     public function setOrder(?Order $order): self
     {
-        $this->order = $rder;
+        $this->order = $order;
 
         return $this;
     }

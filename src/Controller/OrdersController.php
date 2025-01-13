@@ -11,7 +11,6 @@ use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
 use App\Service\StockManagementService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\Entity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -42,6 +41,19 @@ class OrdersController extends AbstractController
     #[Route('/test', name: 'test', methods: ['GET'])]
     public function test(): JsonResponse
     {
+        try{
+        $order = $this->orderRepository->find(1);
+        $product = $this->productRepository->find(3);
+        
+        $list = $this->orderProductRepository->find(1);
+
+        dd($list);
+        } catch (\Throwable $e) {
+            dd($e);
+            return $this->errorResponse('Orders retrieval failed', [$e->getMessage()]);
+        }
+        /**
+
         $order = $this->orderRepository->find(1);
         $product = $this->productRepository->find(1);
         $this->productRepository->checkAndUpdateStockLevel($product, 1);
@@ -54,8 +66,10 @@ class OrdersController extends AbstractController
         $order->addOrderProduct($orderProduct);
         $this->entityManager->persist($order);
         $this->entityManager->flush();
+        **/
 
         dd('test');
+
     }
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -94,6 +108,7 @@ class OrdersController extends AbstractController
         }
     }
 
+    /*
     #[Route('/{id}', name: 'update', methods: ['PUT'])]
     public function update(Request $request, int $id): JsonResponse
     {
@@ -118,6 +133,7 @@ class OrdersController extends AbstractController
             return $this->errorResponse('Order update exception', [$e->getMessage()]);
         }
     }
+    */
 
     #[Route('/{id}', name: 'detail', methods: ['GET'])]
     public function orderDetails(int $id): JsonResponse
@@ -159,13 +175,14 @@ class OrdersController extends AbstractController
 
             $product = $this->findProduct($productId);
             $order = $this->stockManagementService->addProductToOrder($order, $product, $data['quantity']);
+            dd($order);
 
             return $this->successResponse($order, 'Product added to order successfully');
         } catch (\Throwable $e) {
             return $this->errorResponse('Exception while adding product to order', [$e->getMessage()]);
         }
     }
-
+/*
     #[Route('/{orderId}/products/{productId}', name: 'remove_product', methods: ['DELETE'])]
     public function removeProduct(int $orderId, int $productId): JsonResponse
     {
@@ -181,7 +198,7 @@ class OrdersController extends AbstractController
             return $this->handleException('Exception while removing product from order', $e);
         }
     }
-
+*/
     private function errorResponse(
         string $message, 
         ?array $errors = null,
