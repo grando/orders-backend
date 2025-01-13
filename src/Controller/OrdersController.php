@@ -11,6 +11,7 @@ use App\Repository\ProductRepository;
 use App\Service\StockManagementService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
+use Nelmio\ApiDocBundle\Attribute\Model;
 use SebastianBergmann\CodeUnit\CodeUnit;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,6 +23,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
+use OpenApi\Attributes as OA;
 
 #[Route('/orders', name: 'app_orders_')]
 class OrdersController extends AbstractController
@@ -37,7 +39,17 @@ class OrdersController extends AbstractController
     )
     {
     }
-
+    #[OA\Get(
+        path: '/orders',
+        summary: 'List all orders',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Returns the list of orders',
+                content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: new Model(type: Order::class, groups: ['list'])))
+            )
+        ]
+    )]
     #[Route('', name: 'list', methods: ['GET'])]
     public function index(Request $request, NormalizerInterface $normalizer): JsonResponse
     {
@@ -57,6 +69,20 @@ class OrdersController extends AbstractController
         }
     }
 
+    #[OA\Post(
+        path: '/orders',
+        summary: 'Create a new order',
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(ref: new Model(type: Order::class, groups: ['create']))
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Order created successfully',
+                content: new OA\JsonContent(ref: new Model(type: Order::class, groups: ['details']))
+            )
+        ]
+    )]
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
@@ -79,11 +105,32 @@ class OrdersController extends AbstractController
         }
     }
 
+    #[OA\Put(
+        path: '/orders/{id}',
+        summary: 'Update an existing order',
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            )
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(ref: new Model(type: Order::class, groups: ['update']))
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Order updated successfully',
+                content: new OA\JsonContent(ref: new Model(type: Order::class, groups: ['details']))
+            )
+        ]
+    )]
     #[Route('/{id}', name: 'update', methods: ['PUT'])]
     public function update(int $id, Request $request): JsonResponse
     {
-        try {
-dd('here');            
+        try {  
             $order = $this->findOrder($id);
 
             $data = json_decode($request->getContent(), true);
@@ -106,6 +153,25 @@ dd('here');
         }
     }
 
+    #[OA\Get(
+        path: '/orders/{id}',
+        summary: 'Get order details',
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Returns the order details',
+                content: new OA\JsonContent(ref: new Model(type: Order::class, groups: ['details']))
+            )
+        ]
+    )]
     #[Route('/{id}', name: 'detail', methods: ['GET'])]
     public function orderDetails(int $id): JsonResponse
     {
@@ -123,6 +189,25 @@ dd('here');
         }
     }
 
+    #[OA\Delete(
+        path: '/orders/{id}',
+        summary: 'Delete an order',
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Order deleted successfully',
+                content: new OA\JsonContent(ref: new Model(type: Order::class, groups: ['details']))
+            )
+        ]
+    )]
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {
@@ -143,7 +228,39 @@ dd('here');
             return $this->errorResponse('Order deletion exception', [$e->getMessage()], $code);
         }
     }
-
+    #[OA\Put(
+        path: '/orders/{orderId}/products/{productId}',
+        summary: 'Add a product to an order',
+        parameters: [
+            new OA\Parameter(
+                name: 'orderId',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            ),
+            new OA\Parameter(
+                name: 'productId',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            )
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'quantity', type: 'integer')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Product added to order successfully',
+                content: new OA\JsonContent(ref: new Model(type: Order::class, groups: ['details']))
+            )
+        ]
+    )]
     #[Route('/{orderId}/products/{productId}', name: 'add_product', methods: ['PUT'])]
     public function addProduct(int $orderId, int $productId, Request $request, ValidatorInterface $validator): JsonResponse
     {
@@ -169,6 +286,39 @@ dd('here');
         }
     }
 
+    #[OA\Delete(
+        path: '/orders/{orderId}/products/{productId}',
+        summary: 'Remove a product from an order',
+        parameters: [
+            new OA\Parameter(
+                name: 'orderId',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            ),
+            new OA\Parameter(
+                name: 'productId',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            )
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'quantity', type: 'integer')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Product removed from order successfully',
+                content: new OA\JsonContent(ref: new Model(type: Order::class, groups: ['details']))
+            )
+        ]
+    )]
     #[Route('/{orderId}/products/{productId}', name: 'remove_product', methods: ['DELETE'])]
     public function removeProduct(int $orderId, int $productId, Request $request, ValidatorInterface $validator): JsonResponse
     {
