@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Order;
-use App\Entity\OrderProduct;
 use App\Entity\Product;
 use App\Model\ApiResponse;
 use App\Repository\OrderProductRepository;
@@ -11,6 +10,8 @@ use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
 use App\Service\StockManagementService;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityNotFoundException;
+use SebastianBergmann\CodeUnit\CodeUnit;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +23,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
-#[Route('orders', name: 'app_orders_')]
+#[Route('/orders', name: 'app_orders_')]
 class OrdersController extends AbstractController
 {
     public function __construct(
@@ -33,7 +34,6 @@ class OrdersController extends AbstractController
         private ValidatorInterface $validator,
         private EntityManagerInterface $entityManager,
         private OrderProductRepository $orderProductRepository
-
     )
     {
     }
@@ -41,7 +41,7 @@ class OrdersController extends AbstractController
     #[Route('', name: 'list', methods: ['GET'])]
     public function index(Request $request, NormalizerInterface $normalizer): JsonResponse
     {
-        try{            
+        try{ 
             $name = $request->query->get('name');
             $description = $request->query->get('description');
             $page = $request->query->getInt('page', 1);
@@ -80,9 +80,10 @@ class OrdersController extends AbstractController
     }
 
     #[Route('/{id}', name: 'update', methods: ['PUT'])]
-    public function update(Request $request, int $id): JsonResponse
+    public function update(int $id, Request $request): JsonResponse
     {
         try {
+dd('here');            
             $order = $this->findOrder($id);
 
             $data = json_decode($request->getContent(), true);
@@ -111,9 +112,14 @@ class OrdersController extends AbstractController
         try {
             $order = $this->findOrder($id);
             $data = $this->serializer->serialize($order, 'json', ['groups' => ['details']]);
+
             return new JsonResponse($data, Response::HTTP_OK, [], true);
         } catch (\Throwable $e) {
-            return $this->errorResponse('Order details retrieval failed', [$e->getMessage()]);
+            $code = Response::HTTP_BAD_REQUEST;
+            if ($e instanceof EntityNotFoundException ){
+                $code = Response::HTTP_NOT_FOUND;
+            }
+            return $this->errorResponse('Order details retrieval failed', [$e->getMessage()], $code);
         }
     }
 
@@ -130,7 +136,11 @@ class OrdersController extends AbstractController
 
             return $this->successResponse(null, 'Order deleted successfully');
         } catch (\Throwable $e) {
-            return $this->errorResponse('Order deletion exception', [$e->getMessage()]);
+            $code = Response::HTTP_BAD_REQUEST;
+            if ($e instanceof EntityNotFoundException ){
+                $code = Response::HTTP_NOT_FOUND;
+            }
+            return $this->errorResponse('Order deletion exception', [$e->getMessage()], $code);
         }
     }
 
@@ -151,7 +161,11 @@ class OrdersController extends AbstractController
 
             return $this->successResponse($order, 'Product added to order successfully');
         } catch (\Throwable $e) {
-            return $this->errorResponse('Exception while adding product to order', [$e->getMessage()]);
+            $code = Response::HTTP_BAD_REQUEST;
+            if ($e instanceof EntityNotFoundException ){
+                $code = Response::HTTP_NOT_FOUND;
+            }
+            return $this->errorResponse('Exception while adding product to order', [$e->getMessage()], $code);
         }
     }
 
@@ -167,14 +181,16 @@ class OrdersController extends AbstractController
                 return $this->errorResponse('Validation error for product quantity', $this->errorsListToArray($errors));
             }
 
-            $product = $this->findProduct($productId);
+            $product = $this->findProduct($productId);         
             $this->stockManagementService->removeProductFromOrder($order, $product, $data['quantity']);
 
-            $apiResponse = ApiResponse::successResponse($order, 'Product removed from order successfully');
-            $json = $this->serializer->serialize($apiResponse, 'json', ['groups' => ['default', 'success']]);
-            return new JsonResponse($json, Response::HTTP_OK, [], true);
+            return $this->successResponse($order, 'Product removed from order successfully');
         } catch (\Throwable $e) {
-            return $this->errorResponse('Exception while removing product from order', [$e->getMessage()]);
+            $code = Response::HTTP_BAD_REQUEST;
+            if($e instanceof EntityNotFoundException) {
+                $code = Response::HTTP_NOT_FOUND;
+            }
+            return $this->errorResponse('Exception while removing product from order', [$e->getMessage()], $code);
         }
     }
 
@@ -196,15 +212,15 @@ class OrdersController extends AbstractController
         array $context = ['groups' => ['default', 'success']]): JsonResponse
     {
         $apiResponse = ApiResponse::successResponse($data, $message);
-        $json = $this->serializer->serialize($apiResponse, 'json', $context);
+        $json = $this->serializer->serialize($apiResponse, 'json', $context);        
         return new JsonResponse(json_decode($json), $httpCode); 
     }
 
     private function findOrder(int $id): Order
     {
         $order = $this->orderRepository->find($id);
-        if (!$order) {
-            throw new \Exception('Order not found');
+        if (empty($order)) {
+            throw new EntityNotFoundException('Order not found');
         }
         return $order;
     }
@@ -212,8 +228,8 @@ class OrdersController extends AbstractController
     private function findProduct(int $id): Product
     {
         $product = $this->productRepository->find($id);
-        if (!$product) {
-            throw new \Exception('Product not found');
+        if (empty($product)) {
+            throw new EntityNotFoundException('Product not found');
         }
         return $product;
     }

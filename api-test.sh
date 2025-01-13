@@ -13,14 +13,8 @@ curl -X 'GET' \
   -H 'accept: application/json'
 
 curl -X 'GET' \
-  'http://webapp.local/orders' \
-  -H 'accept: application/json' \
-  -d '{
-  "name": "order",
-  "description": "descr",
-  "page": 1,
-  "limit": 10
-}'
+  'http://webapp.local/orders?name=order&page=1&limit=10' \
+  -H 'accept: application/json' 
 
 
 # Order details

@@ -26,7 +26,6 @@ class OrderProduct
     #[Groups(['details'])]
     private ?Product $product = null;
 
-
     #[ORM\Column]
     #[Groups(['details'])]
     private ?int $quantity = null;

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\OrderRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -15,15 +16,15 @@ class Order
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['list', 'details'])]
+    #[Groups(['list', 'details', 'default'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['list', 'details'])]
+    #[Groups(['list', 'details', 'default'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['list', 'details'])]
+    #[Groups(['list', 'details', 'default'])]
     private ?string $description = null;
 
     #[ORM\Column]
@@ -33,6 +34,11 @@ class Order
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: OrderProduct::class, cascade: ['persist', 'remove'])]
     #[Groups(['details'])]
     private Collection $orderProducts;
+
+    public function __construct()
+    {
+        $this->orderProducts = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {

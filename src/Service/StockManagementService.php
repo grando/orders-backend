@@ -46,7 +46,6 @@ class StockManagementService
         }
     }
 
-
     public function addProductToOrder(Order $order, Product $product, int $quantity): Order
     {
         $this->entityManager->beginTransaction();
@@ -73,12 +72,11 @@ class StockManagementService
             $this->orderRepository->save($order);
 
             $this->entityManager->commit();
+            return $order;
         } catch (\Throwable $e) {
             $this->entityManager->rollback();
             throw $e;
         }
-
-        return $order;
     }
 
     public function removeProductFromOrder(Order $order, Product $product, int $quantity): Order
@@ -104,12 +102,11 @@ class StockManagementService
             }
 
             $this->entityManager->commit();
+            return $order;
         } catch (\Throwable $e) {
             $this->entityManager->rollback();
             throw $e;
         }
-
-        return $order;
     }
 
 }
