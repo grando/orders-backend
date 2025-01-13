@@ -3,7 +3,9 @@ This repository contains the code resolving a provided technical challenge. The 
 ## Installation
 The application use Symfony 6.4, PHP 8.1, and MySQL 8.0. All the environment is containerized using docker.
 
-A makefile is provided to ease the installation process. The default way to install the project use docker-compose tools.
+A makefile is provided to ease the installation process. The makefile was written considering *sudo docker* the default command to run docker commands. If you are using a different command, you need to change the makefile accordingly.  
+
+The default way to install the project use docker-compose tools. 
 
 Run the following command to install the project:
 ```bash
@@ -48,8 +50,10 @@ The API documentation is available at the following URL: [http://webapp.local/ap
 ## Considerations about the developed solution
 A important point about the developed solution is how the concurrency is handled. 
 Each products has a stock level, and the concurrance orders could lead to a negative stock level.
+
 To avoid this condition, a simple transaction is used to decrement or increment the stock level.
 This approach is not the best one if we have a huge amount of orders to process simultaneously.
+
 I use it because it is simple enough demo purpose.
 Database transactions can be raplidly became a bottleneck in a high concurrency environment.
 Other possible solutions are:
